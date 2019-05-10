@@ -2,6 +2,7 @@
 import scrapy
 import custom_spider_settings as unethical
 import data_manager #use this module to leave all connection handling out of the spider
+import url_parser #this class should be used to retrieve the next crawling pages. It should be a very simple class
 
 class ZapimoveisSpider(scrapy.Spider):
     name = 'zapimoveis'
