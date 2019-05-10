@@ -47,7 +47,7 @@ class DataManager():
 		"""Query the url and request tables to get non-crawled urls"""
 		pass
 
-	def save_new_response(self):
+	def save_new_response(self, response_url, response_status):
 		"""Update the request table with current response"""
 		pass
 
