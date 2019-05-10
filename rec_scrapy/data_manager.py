@@ -19,13 +19,37 @@ class DataManager():
 		c = credentials
 		return pymysql.connect(host=c['host'],user=c['user'],passwd=c['passwd'],port=c['port'], db=c['db'])
 
-	def load_new_urls_from_domain(self, domain_name):
+	def get_domain_id(self, domain_name, domain_country):
+		self.domains = {}
+		domain_id = []
+		#connect to the database
+		with DataManager(self.file_name) as connected_manager:
+			cursorObject = connected_manager.connection.cursor()
+			for domain in domain_name:
+				selectQuery = f'SELECT DomainID FROM domain WHERE DomainName LIKE "%{domain}%" LIMIT 0, 1'
+				insertQuery = f'INSERT INTO domain(DomainName, CountryName) VALUES ("{domain}", "{domain_country}")'
+				#fetch the id
+				cursorObject.execute(selectQuery)
+				current_id = cursorObject.fetchall()
+				#check if it is a new domain to the database
+				if current_id == ():
+					#insert it to the database
+					print("Domain not found in the database")
+					cursorObject.execute(insertQuery)
+					print("Domain added to the database")
+					cursorObject.execute(selectQuery)
+					current_id = cursorObject.fetchall()
+					connected_manager.connection.commit()
+				domain_id.append(current_id[0][0])
+		return domain_id
+
+	def load_new_urls_from_domain(self, domain_id):
 		pass
 
 	def save_new_response(self):
 		pass
 
-	"""all methods below are the __magic methods__"""
+	"""dunder methods defined below"""
 	def __init__(self, file_name=file_name):
 		'''Initialise loading and connecting to database'''
 		arg = file_name
