@@ -61,11 +61,11 @@ class DataManager():
         
 	def load_new_urls_from_domain(self, domain_id):
 		"""Query the url and request tables to get non-crawled urls"""
-		pass
+		return
 
 	def save_new_response(self, response_url, response_status):
 		"""Update the request table with current response"""
-		pass
+		return
 	
         def save_new_urls(self, list_of_links):
                 """Update the url table to add new urls"""
@@ -95,7 +95,7 @@ class DataManager():
                                                                 connected_manager.connection.commit()
                                                         url_id.append(current_id[0][0])
                                                         self.links.append({'URLID': current_id[0][0], 'FullURL': link, 'DomainID': domainID, 'DateIndexed': DateIndexed})
-                print(self.links)
+                return self.links
 
 	"""dunder methods defined below"""
 	def __init__(self, file_name=file_name):
