@@ -93,9 +93,8 @@ class DataManager():
                                 cursorObject.execute(selectQuery)
                                 current_id = cursorObject.fetchall()
                                 connected_manager.connection.commit()
-                            #url_id.append(current_id[0][0])
                             self.links.append({'URLID': current_id[0][0], 'FullURL': link, 'DomainID': domainID, 'DateIndexed': DateIndexed})
-        print(self.links)
+        return
 
     """dunder methods defined below"""
     def __init__(self, file_name=file_name):
