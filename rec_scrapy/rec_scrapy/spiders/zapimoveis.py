@@ -14,7 +14,7 @@ class ZapimoveisSpider(scrapy.Spider):
 
     #load list of urls to crawl
     dm = data_manager.DataManager()
-    id_allowed_domains = dm.get_domain_id(allowed_domains, domain_country)
+    id_allowed_domains = dm.load_domain_id(allowed_domains, domain_country)
 
 
 
