@@ -1,6 +1,6 @@
 #This file is intended to override crawling settings on a basic scrapy spider
 #The main goal is to keep the settings.py file simple and fitting most spider needs, so only the exceptions should import this
-
+import os
 #values to be overriden on the settings.py file are this:
 
 
@@ -11,7 +11,9 @@ def get_unethical_settings(name_of_the_spider=''):
 		ROBOTSTXT_OBEY = False
 		DOWNLOAD_DELAY = 40 #those bastards won't allow webscraping
 		COOKIES_ENABLED = True #I'm not sure this is necessary, but just in case
-		return {'BOT_NAME':BOT_NAME, 'ROBOTSTXT_OBEY':ROBOTSTXT_OBEY,'DOWNLOAD_DELAY':DOWNLOAD_DELAY,'COOKIES_ENABLED':COOKIES_ENABLED}
+		save_file = True
+		save_directory = os.curdir + '\\html-files\\'
+		return {'BOT_NAME':BOT_NAME, 'ROBOTSTXT_OBEY':ROBOTSTXT_OBEY,'DOWNLOAD_DELAY':DOWNLOAD_DELAY,'COOKIES_ENABLED':COOKIES_ENABLED}, save_file, save_directory
 	
 
 	#for any other profile, return an empty dictionary

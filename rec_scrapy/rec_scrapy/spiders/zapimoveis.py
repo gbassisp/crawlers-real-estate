@@ -9,12 +9,12 @@ class ZapimoveisSpider(scrapy.Spider):
     allowed_domains = ['zapimoveis.com.br']
     domain_country = "Brazil"
     start_urls = ['https://www.zapimoveis.com.br/'] #this shall be updated to start from previous session
-    custom_settings = custom_spider_settings.get_unethical_settings(name)
-    save_file = False #custom_spider_settings.save_file
-
-    #load list of urls to crawl
-    dm = data_manager.DataManager()
-    id_allowed_domains = dm.load_domain_id(allowed_domains, domain_country)
+    custom_settings, save_file, save_dir = custom_spider_settings.get_unethical_settings(name)
+    
+    #Create data manager object
+    dm = data_manager.DataManager('credentials.json')
+    dm.set_save_file_settings(save_file, save_dir)
+    dm.load_domain_id(allowed_domains, domain_country)
 
 
 
@@ -26,9 +26,4 @@ class ZapimoveisSpider(scrapy.Spider):
         new_links = list(set(parser_obj.output_list)) #this is smelly to me, but it works
         self.dm.save_new_urls(new_links) #update the url table with the urls retrieved from this page
         self.start_urls = self.dm.get_urls_to_crawl(self.start_urls) #updates the crawling queue
-        
-        #saving the HTML file
-        if self.save_file:
-            file_name = custom_spider_settings.save_dir + str(response_id) + '.html'
-            with open(file_name, 'wb') as file:
-                file.write(response.body)
+        self.dm.save_new_file(response)

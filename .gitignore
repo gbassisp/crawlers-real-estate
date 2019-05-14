@@ -2,3 +2,4 @@ __pycache__/
 response_files/
 credentials.json
 *.bat
+html-files/
