@@ -30,6 +30,6 @@ class ZapimoveisSpider(scrapy.Spider):
         self.dm.save_new_file(response)
 
         if self.next_urls is not None:
-            next_page = self.next_urls.pop()
-            print(f'preparing to crawl {next_page}')
-            yield scrapy.Request(next_page, callback=self.parse)
+            #next_page = self.next_urls.pop()
+            #print(f'preparing to crawl {next_page}')
+            yield scrapy.Request(iter(self.next_urls), callback=self.parse)
