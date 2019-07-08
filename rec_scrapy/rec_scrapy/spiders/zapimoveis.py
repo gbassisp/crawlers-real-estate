@@ -29,7 +29,7 @@ class ZapimoveisSpider(scrapy.Spider):
         self.next_urls = self.next_urls.update(self.dm.get_urls_to_crawl(list(self.next_urls))) #updates the crawling set
         self.dm.save_new_file(response)
 
-        if start_urls is not None:
+        if next_urls is not None:
             next_page = next_urls.pop()
             print(f'preparing to crawl {next_page}')
             yield scrapy.Request(next_page, callback=self.parse)
