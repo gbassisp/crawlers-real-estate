@@ -13,6 +13,9 @@ class DataManager():
     links = []
     connection = None
 
+    def set_save_file_settings(self, save_file=False, save_dir=''):
+        pass
+    
     def load_credentials(self, file_name=file_name):
         """Load the credentials from the json file"""
         with open(file_name,'r') as file:
@@ -96,6 +99,9 @@ class DataManager():
                             self.links.append({'URLID': current_id[0][0], 'FullURL': link, 'DomainID': domainID, 'DateIndexed': DateIndexed})
         return
 
+    def save_new_file(self, responseObj):
+        pass
+    
     """dunder methods defined below"""
     def __init__(self, file_name=file_name):
         '''Initialise loading and connecting to database'''
