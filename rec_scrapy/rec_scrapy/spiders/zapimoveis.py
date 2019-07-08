@@ -26,7 +26,7 @@ class ZapimoveisSpider(scrapy.Spider):
         parser_obj.feed(response.body.decode('utf-8')) #feed the HTML to the parser
         new_links = list(set(parser_obj.output_list)) #this is smelly to me, but it works
         self.dm.save_new_urls(new_links) #update the url table with the urls retrieved from this page
-        self.next_urls = self.next_urls.update(self.dm.get_urls_to_crawl(self.next_urls)) #updates the crawling set
+        self.next_urls = self.next_urls.update(self.dm.get_urls_to_crawl(list(self.next_urls))) #updates the crawling set
         self.dm.save_new_file(response)
 
         if start_urls is not None:
