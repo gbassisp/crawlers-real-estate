@@ -22,6 +22,10 @@ class ZapimoveisSpider(scrapy.Spider):
 
     def parse(self, response):
         response_id = self.dm.save_new_response(response.url, response.status) #update the response table with the link and HTTP code
+        try:
+            self.next_urls.remove(response.url)
+        except:
+            pass
         parser_obj = url_parser.URLParser(response.url) #create a parser object for this response
         parser_obj.feed(response.body.decode('utf-8')) #feed the HTML to the parser
         new_links = list(set(parser_obj.output_list)) #this is smelly to me, but it works
@@ -32,4 +36,4 @@ class ZapimoveisSpider(scrapy.Spider):
         if self.next_urls is not None:
             #next_page = self.next_urls.pop()
             #print(f'preparing to crawl {next_page}')
-            yield scrapy.Request(iter(self.next_urls), callback=self.parse)
+            yield scrapy.Request(next(iter(self.next_urls)), callback=self.parse)
