@@ -30,4 +30,5 @@ class ZapimoveisSpider(scrapy.Spider):
 
         if start_urls is not None:
             next_page = start_urls.pop()
+            print(f'preparing to crawl {next_page}')
             yield scrapy.Request(next_page, callback=self.parse)
