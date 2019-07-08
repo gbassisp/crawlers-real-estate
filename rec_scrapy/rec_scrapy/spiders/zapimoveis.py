@@ -8,7 +8,8 @@ class ZapimoveisSpider(scrapy.Spider):
     name = 'zapimoveis'
     allowed_domains = ['zapimoveis.com.br']
     domain_country = "Brazil"
-    start_urls = set(['https://www.zapimoveis.com.br/']) #this shall be updated to start from previous session
+    start_urls = ['https://www.zapimoveis.com.br/'] #this shall be updated to start from previous session
+    next_urls = set(start_urls)
     custom_settings, save_file, save_dir = custom_spider_settings.get_unethical_settings(name)
     
     #Create data manager object
@@ -25,10 +26,10 @@ class ZapimoveisSpider(scrapy.Spider):
         parser_obj.feed(response.body.decode('utf-8')) #feed the HTML to the parser
         new_links = list(set(parser_obj.output_list)) #this is smelly to me, but it works
         self.dm.save_new_urls(new_links) #update the url table with the urls retrieved from this page
-        self.start_urls = start_urls.update(self.dm.get_urls_to_crawl(self.start_urls)) #updates the crawling set
+        self.next_urls = next_urls.update(self.dm.get_urls_to_crawl(self.next_urls)) #updates the crawling set
         self.dm.save_new_file(response)
 
         if start_urls is not None:
-            next_page = start_urls.pop()
+            next_page = next_urls.pop()
             print(f'preparing to crawl {next_page}')
             yield scrapy.Request(next_page, callback=self.parse)
