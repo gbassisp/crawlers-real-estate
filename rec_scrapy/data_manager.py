@@ -31,7 +31,8 @@ class DataManager():
         """Query the domain table to get the DomainID for each domain in the list"""
         domain_id = []
         #connect to the database
-        with DataManager(self.file_name) as connected_manager:
+        try:
+            connected_manager = self
             cursorObject = connected_manager.connection.cursor()
             for domain in domain_name:
                 selectQuery = f'SELECT DomainID FROM domain WHERE DomainName LIKE "%{domain}%" LIMIT 0, 1'
@@ -49,6 +50,8 @@ class DataManager():
                     connected_manager.connection.commit()
                 domain_id.append(current_id[0][0])
                 self.domains.append({'DomainID': current_id[0][0], 'DomainName': domain, 'CountryName': domain_country})
+        except:
+            print("Could not load domain info")
         return domain_id
         
     def get_urls_to_crawl(self, url_queue):
@@ -76,7 +79,8 @@ class DataManager():
         DateIndexed = now.strftime('%Y-%m-%d')
         current_urls = [url['FullURL'] for url in self.links]
         #connect to the database
-        with DataManager(self.file_name) as connected_manager:
+        try:
+            connected_manager = self
             cursorObject = connected_manager.connection.cursor()
             for link in list_of_links:
                 for domain in self.domains:
@@ -97,6 +101,8 @@ class DataManager():
                                 current_id = cursorObject.fetchall()
                                 connected_manager.connection.commit()
                             self.links.append({'URLID': current_id[0][0], 'FullURL': link, 'DomainID': domainID, 'DateIndexed': DateIndexed})
+        except:
+            print("Could not save new urls")
         return
 
     def save_new_file(self, responseObj):
@@ -109,17 +115,20 @@ class DataManager():
         try:
             self.file_name = arg
             self.credentials = self.load_credentials(arg)
+            self.__enter__()
         except:
             print('WARNING: No such credentials')
             
     def __enter__(self):
         """Establishes a connection; to be used with context manager"""
         self.connection = self.connect_to_database(self.credentials)
+        print("New connection to the database")
         return self #return THIS object with a connection established
 
     def __exit__(self, *args):
         """Finishes the connection; to be used with context manager"""
         self.connection.close() #closes the connection within this object
+        print("Ended connection to the database")
             
 
 
