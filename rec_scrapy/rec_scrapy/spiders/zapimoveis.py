@@ -18,6 +18,9 @@ class ZapimoveisSpider(scrapy.Spider):
     dm.load_domain_id(allowed_domains, domain_country)
 
 
+    def close(self, reason):
+        self.dm.__exit__()
+        super().close(self, reason)
 
 
     def parse(self, response):
