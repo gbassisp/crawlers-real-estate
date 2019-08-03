@@ -50,8 +50,8 @@ class DataManager():
                     connected_manager.connection.commit()
                 domain_id.append(current_id[0][0])
                 self.domains.append({'DomainID': current_id[0][0], 'DomainName': domain, 'CountryName': domain_country})
-        except:
-            print("Could not load domain info")
+        except Exception as e:
+            print("Could not load domain info, catched: ", e)
         return domain_id
         
     def get_urls_to_crawl(self, url_queue):
@@ -101,8 +101,8 @@ class DataManager():
                                 current_id = cursorObject.fetchall()
                                 connected_manager.connection.commit()
                             self.links.append({'URLID': current_id[0][0], 'FullURL': link, 'DomainID': domainID, 'DateIndexed': DateIndexed})
-        except:
-            print("Could not save new urls")
+        except Exception as e:
+            print("Could not save new urls, catched: ", e)
         return
 
     def save_new_file(self, responseObj):
