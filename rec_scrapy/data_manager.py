@@ -92,7 +92,7 @@ class DataManager():
     def save_new_response(self, response_url, response_status):
         """Update the request table with current response"""
         self.crawled_urls.add(response_url)
-        print(f'These URLs have been crawled: \n {self.crawled_urls}')
+        print(f'So far, {len(self.crawled_urls)} URLs have been crawled.')
         self.uncrawled_urls.discard(response_url)
         #TODO: save to database and return the ID
         return
