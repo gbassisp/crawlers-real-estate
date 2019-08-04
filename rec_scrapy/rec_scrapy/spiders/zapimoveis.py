@@ -41,5 +41,5 @@ class ZapimoveisSpider(scrapy.Spider):
         if self.next_urls is not None:
             next_page = self.next_urls.pop()
             print(f'There are {len(self.next_urls)} URLs remaining. Preparing to crawl {next_page}')
-            yield scrapy.Request(next_page, callback=self.parse)
+            yield scrapy.Request(next_page, callback=self.parse, dont_filter=True)
             #yield scrapy.Request(next(iter(self.next_urls)), callback=self.parse)
