@@ -6,6 +6,7 @@ import url_parser #this class should be used to retrieve the next crawling pages
 
 class ZapimoveisSpider(scrapy.Spider):
     name = 'zapimoveis'
+    handle_httpstatus_all = True
     allowed_domains = ['zapimoveis.com.br']
     domain_country = "Brazil"
     start_urls = ['https://www.zapimoveis.com.br/'] #this shall be updated to start from previous session
