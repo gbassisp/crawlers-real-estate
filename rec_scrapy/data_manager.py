@@ -12,6 +12,7 @@ class DataManager():
     loaded_urls = set() #set of URL loaded from database
     crawled_urls = set() #set of URL crawled on this session
     uncrawled_urls = set()
+    obtained_crawling_urls = set() #set if URL obatined from parsing the crawled pages
     domains = []
     links = [] #list of dict with this structure: {'URLID': thisID, 'FullURL': link fetched from website, 'DomainID': domainID, 'DateIndexed': DateIndexed}
     connection = None
@@ -60,27 +61,29 @@ class DataManager():
         
     def get_urls_to_crawl(self, url_queue):
         """Append the new_urls to the current list and return a list respecting a minimum treshold"""
-        if len(url_queue) > 50: #if list is big enough, don't change it
-            return url_queue
-        else:
-            new_urls = list(self.uncrawled_urls)
-            if len(new_urls) < 100: #if it isn't, but we don't have much to provide, give what we've got
-                return url_queue + new_urls
+        if len(url_queue) < 50: #if list is big enough, don't change it
+            if len(self.uncrawled_urls) < 100: #if it isn't, but we don't have much to provide, give what we've got
+                for domain in self.domains:
+                    self.load_new_urls_from_domain(domain["DomainID"])
+                url_queue = list(set(url_queue).union(self.uncrawled_urls))
             else:
-                return url_queue + new_urls[:100]
+                url_queue = list(set(url_queue).union(set(list(self.uncrawled_urls)[:100])))
+        print(f"Returning {len(url_queue)} URLs to crawl")
+        return url_queue
     
     def load_new_urls_from_domain(self, domain_id):
         """Query the url and request tables to get non-crawled urls"""
-        selectQuery = f'SELECT u.FullURL FROM url AS u WHERE u.DomainID = {domain_id} ORDER BY u.Priority DESC LIMIT 50'
+        selectQuery = f'SELECT u.FullURL FROM url AS u WHERE u.DomainID = {domain_id} ORDER BY u.Priority DESC, RAND() LIMIT 50'
         try:
             connected_manager = self
             cursorObject = connected_manager.connection.cursor()
             cursorObject.execute(selectQuery)
             queryResults = cursorObject.fetchall()
+            queryResults = [result[0] for result in queryResults]
             self.loaded_urls.update(queryResults)
             #TODO: query which urls have been crawled or not
-            self.uncrawled_urls.update(queryResults)
-            print(f"Fetched {len(queryResults)} new URLs")
+            self.uncrawled_urls.update(set(queryResults) - self.crawled_urls)
+            print(f"Fetched {len(queryResults)} new URLs from database. There are {len(self.uncrawled_urls)} waiting")
         except Exception as e:
             print("Could not load URLs to crawl, catched: ", e)
         return list(queryResults)
@@ -88,12 +91,14 @@ class DataManager():
     def save_new_response(self, response_url, response_status):
         """Update the request table with current response"""
         self.crawled_urls.add(response_url)
+        print(f'These URLs have been crawled: \n {self.crawled_urls}')
         self.uncrawled_urls.discard(response_url)
         #TODO: save to database and return the ID
         return
 
     def save_new_urls(self, list_of_links):
         """Update the url table to add new urls"""
+        self.obtained_crawling_urls.update(list_of_links)
         now = dt.datetime.now()
         DateIndexed = now.strftime('%Y-%m-%d')
         current_urls = [url['FullURL'] for url in self.links]
