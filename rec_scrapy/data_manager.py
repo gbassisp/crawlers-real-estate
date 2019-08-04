@@ -9,6 +9,7 @@ class DataManager():
     file_name = 'credentials.json' #default file for this project
     credentials = {}
     current_urls = []
+    loaded_urls = set()
     domains = []
     links = []
     connection = None
@@ -50,6 +51,7 @@ class DataManager():
                     connected_manager.connection.commit()
                 domain_id.append(current_id[0][0])
                 self.domains.append({'DomainID': current_id[0][0], 'DomainName': domain, 'CountryName': domain_country})
+                self.load_new_urls_from_domain(current_id[0][0])
         except Exception as e:
             print("Could not load domain info, catched: ", e)
         return domain_id
@@ -67,7 +69,17 @@ class DataManager():
     
     def load_new_urls_from_domain(self, domain_id):
         """Query the url and request tables to get non-crawled urls"""
-        return
+        selectQuery = f'SELECT u.FullURL FROM url AS u WHERE u.DomainID = {domain_id} ORDER BY u.Priority DESC LIMIT 50'
+        try:
+            connected_manager = self
+            cursorObject = connected_manager.connection.cursor()
+            cursorObject.execute(selectQuery)
+            queryResults = cursorObject.fetchall()
+            self.loaded_urls.update(queryResults)
+            print(f"Fetched {len(queryResults)} new URLs")
+        except Exception as e:
+            print("Could not load URLs to crawl, catched: ", e)
+        return list(queryResults)
 
     def save_new_response(self, response_url, response_status):
         """Update the request table with current response"""
