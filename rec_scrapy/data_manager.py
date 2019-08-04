@@ -3,6 +3,7 @@ import pymysql
 import json
 import datetime as dt
 import random
+import url_parser
 
 class DataManager():
     """A custom MySQL managing module for all spiders"""
@@ -98,7 +99,6 @@ class DataManager():
 
     def save_new_urls(self, list_of_links):
         """Update the url table to add new urls"""
-        self.obtained_crawling_urls.update(list_of_links)
         now = dt.datetime.now()
         DateIndexed = now.strftime('%Y-%m-%d')
         current_urls = [url['FullURL'] for url in self.links]
@@ -108,8 +108,10 @@ class DataManager():
             cursorObject = connected_manager.connection.cursor()
             for link in list_of_links:
                 for domain in self.domains:
-                    if domain['DomainName'] in link:
+                    urlparser = url_parser.URLParser(domain['DomainName'])
+                    if urlparser.check_domain(domain['DomainName'], link): 
                         if link not in current_urls:
+                            self.obtained_crawling_urls.add(link)
                             domainID = domain['DomainID']
                             selectQuery = f'SELECT URLID FROM url WHERE FullURL LIKE "{link}" LIMIT 0, 1'
                             insertQuery = f'INSERT INTO url(FullURL, DomainID, DateIndexed) VALUES ("{link}", "{domainID}", "{DateIndexed}")'
