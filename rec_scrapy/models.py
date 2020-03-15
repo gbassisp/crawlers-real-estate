@@ -21,6 +21,7 @@ class Page(Base):
      domain_id=Column(Integer, ForeignKey('domain.id'))
      full_url=Column(String(255))
      crawl=Column(Boolean, default=True)
+     create_date=Column(DateTime, default=dt.datetime.now())
 
      domain = relationship('Domain', back_populates='pages')
      responses = relationship('Response', back_populates='page')
