@@ -18,6 +18,29 @@ class DataManager():
     links = [] #list of dict with this structure: {'URLID': thisID, 'FullURL': link fetched from website, 'DomainID': domainID, 'DateIndexed': DateIndexed}
     connection = None
 
+    """dunder methods defined below"""
+    def __init__(self, file_name=file_name):
+        '''Initialise loading and connecting to database'''
+        arg = file_name
+        try:
+            self.file_name = arg
+            self.credentials = self.load_credentials(arg)
+            self.__enter__()
+        except:
+            print('WARNING: No such credentials')
+            
+    def __enter__(self):
+        """Establishes a connection; to be used with context manager"""
+        self.connection = self.connect_to_database(self.credentials)
+        print("New connection to the database")
+        return self #return THIS object with a connection established
+
+    def __exit__(self, *args):
+        """Finishes the connection; to be used with context manager"""
+        self.connection.close() #closes the connection within this object
+        print("Ended connection to the database")
+    
+    """Other methods"""        
     def set_save_file_settings(self, save_file=False, save_dir=''):
         pass
     
@@ -134,29 +157,7 @@ class DataManager():
     def save_new_file(self, responseObj):
         pass
     
-    """dunder methods defined below"""
-    def __init__(self, file_name=file_name):
-        '''Initialise loading and connecting to database'''
-        arg = file_name
-        try:
-            self.file_name = arg
-            self.credentials = self.load_credentials(arg)
-            self.__enter__()
-        except:
-            print('WARNING: No such credentials')
-            
-    def __enter__(self):
-        """Establishes a connection; to be used with context manager"""
-        self.connection = self.connect_to_database(self.credentials)
-        print("New connection to the database")
-        return self #return THIS object with a connection established
-
-    def __exit__(self, *args):
-        """Finishes the connection; to be used with context manager"""
-        self.connection.close() #closes the connection within this object
-        print("Ended connection to the database")
-            
-
+    
 
 
 
