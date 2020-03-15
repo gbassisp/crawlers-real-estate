@@ -3,22 +3,27 @@ import scrapy
 import custom_spider_settings
 import data_manager #use this module to leave all connection handling out of the spider
 import url_parser #this class should be used to retrieve the next crawling pages. It should be a very simple class
+import config
 
 class ZapimoveisSpider(scrapy.Spider):
     name = 'zapimoveis'
     handle_httpstatus_all = True
-    allowed_domains = ['zapimoveis.com.br']
-    domain_country = "Brazil"
-    start_urls = ['https://www.zapimoveis.com.br/'] #this shall be updated to start from previous session
-    next_urls = set(start_urls)
+    allowed_domains = config.domains
+    domain_country = "BRA" #3 letters only
     custom_settings, save_file, save_dir = custom_spider_settings.get_unethical_settings(name)
     
-    #Create data manager object
-    dm = data_manager.DataManager('credentials.json')
-    dm.set_save_file_settings(save_file, save_dir)
-    dm.load_domain_id(allowed_domains, domain_country)
+    
+    def __init__(self):
+        self.start_urls = [self.add_https_scheme(domain) for domain in self.allowed_domains]
+        self.next_urls = set(self.start_urls)
+        #Create data manager object
+        dm = data_manager.DataManager('credentials.json')
+        dm.set_save_file_settings(save_file, save_dir)
+        dm.set_domains(allowed_domains, domain_country)
 
-
+    def add_https_scheme(self, url):
+        return 'https://{}'.format(url)
+    
     def close(self, reason):
         self.dm.__exit__()
         super().close(self, reason)
