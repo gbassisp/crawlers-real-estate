@@ -47,6 +47,9 @@ class DataManager():
     """Other methods"""
     
     '''SQLALCHEMY METHODS'''
+    def add_https_scheme(self, url):
+        return 'https://{}'.format(url)
+
     def create_engine(self):
         '''Create sqlalchemy database engine'''
         # sqlite://<nohostname>/<path>
@@ -126,29 +129,22 @@ class DataManager():
         if len(url_queue) < 50: #if list is big enough, don't change it
             if len(self.uncrawled_urls) < 100: #if it isn't, but we don't have much to provide, give what we've got
                 for domain in self.domains:
-                    self.load_new_urls_from_domain(domain["DomainID"])
+                    self.load_new_urls(self.domains)
                 url_queue = list(set(url_queue).union(self.uncrawled_urls))
             else:
                 url_queue = list(set(url_queue).union(set(list(self.uncrawled_urls)[:100])))
         print(f"Returning {len(url_queue)} URLs to crawl")
         return url_queue
     
-    def load_new_urls_from_domain(self, domain_id):
+    def load_new_urls(self, domains):
         """Query the url and request tables to get non-crawled urls"""
-        selectQuery = f'SELECT u.FullURL FROM url AS u WHERE u.DomainID = {domain_id} ORDER BY u.Priority DESC, RAND() LIMIT 50'
-        try:
-            connected_manager = self
-            cursorObject = connected_manager.connection.cursor()
-            cursorObject.execute(selectQuery)
-            queryResults = cursorObject.fetchall()
-            queryResults = [result[0] for result in queryResults]
-            self.loaded_urls.update(queryResults)
-            #TODO: query which urls have been crawled or not
-            self.uncrawled_urls.update(set(queryResults) - self.crawled_urls)
-            print(f"Fetched {len(queryResults)} new URLs from database. There are {len(self.uncrawled_urls)} waiting")
-        except Exception as e:
-            print("Could not load URLs to crawl, catched: ", e)
-        return list(queryResults)
+        for domain in domains:
+            query_results = self.session\
+                .query(models.Page)\
+                    .outerjoin(models.Response)\
+                        .filter(models.Response.id==None).order_by(models.Page.create_date).all()
+            self.uncrawled_urls.update([result.full_url for result in query_results])
+        return 
 
     def save_new_response(self, response_url, response_status):
         """Update the request table with current response"""
@@ -165,6 +161,8 @@ class DataManager():
             for domain in self.domains: # each domain
                 if domain.name in url: # verify if the url belongs to an allowed domain
                     current_link, new = self.query(models.Page, full_url=url, domain_id=domain.id, create_date=now)
+                    if new:
+                        self.uncrawled_urls.append(current_link)
         return
 
     def save_new_file(self, responseObj):
