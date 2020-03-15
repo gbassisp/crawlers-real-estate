@@ -121,6 +121,7 @@ class DataManager():
             params.update(defaults or {})
             row = model(**params)
             self.session.add(row)
+            self.session.commit()
         return row, new
 
         
@@ -128,8 +129,7 @@ class DataManager():
         """Append the new_urls to the current list and return a list respecting a minimum treshold"""
         if len(url_queue) < 50: #if list is big enough, don't change it
             if len(self.uncrawled_urls) < 100: #if it isn't, but we don't have much to provide, give what we've got
-                for domain in self.domains:
-                    self.load_new_urls(self.domains)
+                self.load_new_urls(self.domains)
                 url_queue = list(set(url_queue).union(self.uncrawled_urls))
             else:
                 url_queue = list(set(url_queue).union(set(list(self.uncrawled_urls)[:100])))
@@ -142,17 +142,28 @@ class DataManager():
             query_results = self.session\
                 .query(models.Page)\
                     .outerjoin(models.Response)\
-                        .filter(models.Response.id==None).order_by(models.Page.create_date).all()
-            self.uncrawled_urls.update([result.full_url for result in query_results])
+                        .filter(models.Response.id==None).order_by(models.Page.create_date)\
+                            .slice(1,25).all()
+            urls = [result.full_url for result in query_results]
+            print(urls)
+            self.uncrawled_urls.update(urls)
         return 
 
     def save_new_response(self, response_url, response_status):
         """Update the request table with current response"""
+        now = dt.datetime.now()
         self.crawled_urls.add(response_url)
         print(f'So far, {len(self.crawled_urls)} URLs have been crawled.')
         self.uncrawled_urls.discard(response_url)
         #TODO: save to database and return the ID
-        return
+        for domain in self.domains:
+            if domain.name in response_url:
+                page, new = self.query(models.Page, full_url=response_url, domain_id=domain.id)
+                return self.query(models.Response, page_id=page.id, response_code=response_status, visit_date=now)
+        print('Unable to save response for: {}'.format(response_url))
+        return None, True
+        
+        
 
     def save_new_urls(self, list_of_links):
         """Update the url table to add new urls"""
@@ -160,9 +171,9 @@ class DataManager():
         for url in list_of_links: # query each url
             for domain in self.domains: # each domain
                 if domain.name in url: # verify if the url belongs to an allowed domain
-                    current_link, new = self.query(models.Page, full_url=url, domain_id=domain.id, create_date=now)
+                    current_link, new = self.query(models.Page, full_url=url, domain_id=domain.id)
                     if new:
-                        self.uncrawled_urls.append(current_link)
+                        self.uncrawled_urls.update([current_link.full_url])
         return
 
     def save_new_file(self, responseObj):
