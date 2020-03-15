@@ -17,9 +17,9 @@ class ZapimoveisSpider(scrapy.Spider):
         self.start_urls = [self.add_https_scheme(domain) for domain in self.allowed_domains]
         self.next_urls = set(self.start_urls)
         #Create data manager object
-        dm = data_manager.DataManager('credentials.json')
-        dm.set_save_file_settings(save_file, save_dir)
-        dm.set_domains(allowed_domains, domain_country)
+        self.dm = data_manager.DataManager()
+        self.dm.set_save_file_settings(self.save_file, self.save_dir)
+        self.dm.set_domains(self.allowed_domains, self.domain_country)
 
     def add_https_scheme(self, url):
         return 'https://{}'.format(url)
@@ -30,6 +30,7 @@ class ZapimoveisSpider(scrapy.Spider):
 
 
     def parse(self, response):
+        print(dir(response))
         response_id = self.dm.save_new_response(response.url, response.status) #update the response table with the link and HTTP code
         self.next_urls.discard(response.url)
         try: #try parsing the page for new urls
