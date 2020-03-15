@@ -1,6 +1,7 @@
 __pycache__/
 response_files/
-credentials.json
+*credentials*
+!*template*
 *.bat
 html-files/
 venv/
