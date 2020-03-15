@@ -97,11 +97,6 @@ class DataManager():
                 credentials = json.load(file)
         return credentials
 
-    def connect_to_database(self, credentials):
-        """With the given credentials, establishes a connection with the database"""
-        c = credentials
-        return pymysql.connect(host=c['host'],user=c['user'],passwd=c['passwd'],port=c['port'], db=c['db'])
-
     def load_domain_id(self, domain_name, domain_country):
         """Query the domain table to get the DomainID for each domain in the list"""
         domain_id = []
