@@ -14,13 +14,15 @@ class ZapimoveisSpider(scrapy.Spider):
     
     
     def __init__(self):
-        #Create data manager object
+        # Create data manager object
         self.dm = data_manager.DataManager()
         self.start_urls = [self.dm.add_https_scheme(domain) for domain in self.allowed_domains]
-        self.next_urls = set(self.start_urls)
         self.dm.set_save_file_settings(self.save_file, self.save_dir)
         self.dm.set_domains(self.allowed_domains, self.domain_country)
+        # get urls to crawl
+        self.next_urls = set()
         self.next_urls.update(self.dm.get_urls_to_crawl(list(self.next_urls)))
+        
 
     
     def close(self, reason):
@@ -30,7 +32,6 @@ class ZapimoveisSpider(scrapy.Spider):
 
     def parse(self, response):
         response_id, response_new = self.dm.save_new_response(response.url, response.status) #update the response table with the link and HTTP code
-        self.next_urls.discard(response.url)
         try: #try parsing the page for new urls
             parser_obj = url_parser.URLParser(response.url) #create a parser object for this response
             parser_obj.feed(response.body.decode('utf-8')) #feed the HTML to the parser
@@ -38,7 +39,7 @@ class ZapimoveisSpider(scrapy.Spider):
             self.dm.save_new_urls(new_links) #update the url table with the urls retrieved from this page
         except Exception as e:
             print('Could not parse the response, catched ', e)
-        self.next_urls.update(self.dm.get_urls_to_crawl(list(self.next_urls))) #updates the crawling set
+        self.next_urls = set(self.dm.get_urls_to_crawl(list(self.next_urls))) #updates the crawling set
         self.dm.save_new_file(response)
         
 
