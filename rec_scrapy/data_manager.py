@@ -4,11 +4,14 @@ import json
 import datetime as dt
 import random
 import url_parser
+import sqlalchemy
+import os
+from os.path import sep
+import models
+import config
 
 class DataManager():
     """A custom MySQL managing module for all spiders"""
-    file_name = 'credentials.json' #default file for this project
-    credentials = {}
     current_urls = []
     loaded_urls = set() #set of URL loaded from database
     crawled_urls = set() #set of URL crawled on this session
@@ -17,22 +20,24 @@ class DataManager():
     domains = []
     links = [] #list of dict with this structure: {'URLID': thisID, 'FullURL': link fetched from website, 'DomainID': domainID, 'DateIndexed': DateIndexed}
     connection = None
+    
 
     """dunder methods defined below"""
-    def __init__(self, file_name=file_name):
-        '''Initialise loading and connecting to database'''
-        arg = file_name
-        try:
-            self.file_name = arg
-            self.credentials = self.load_credentials(arg)
-            self.__enter__()
-        except:
-            print('WARNING: No such credentials')
-            
+    def __init__(self, file_name=config.credentials_file, db_type=config.db_type, db_file=config.db_sqlite_file):
+        '''Initialise loading and connecting to database'''        
+        self.db_type = db_type
+        self.file_name = file_name
+        if not file_name:
+            self.credentials = config.db_credentials
+        else:
+            self.credentials = self.load_credentials(file_name)
+        self.connection = self.connect_to_db()
+        return
+        
     def __enter__(self):
         """Establishes a connection; to be used with context manager"""
-        self.connection = self.connect_to_database(self.credentials)
-        print("New connection to the database")
+        #self.connection = self.connect_to_db()
+        #print("New connection to the database")
         return self #return THIS object with a connection established
 
     def __exit__(self, *args):
@@ -40,17 +45,59 @@ class DataManager():
         self.connection.close() #closes the connection within this object
         print("Ended connection to the database")
     
-    """Other methods"""        
+    """Other methods"""
+    
+    '''SQLALCHEMY METHODS'''
+    def create_engine(self):
+        '''Create sqlalchemy database engine'''
+        # sqlite://<nohostname>/<path>
+        # mysql://user:password@host/db
+        # create from current object parameters
+        print('Creating database engine from parameters')
+        if self.db_type == 'sqlite':
+            print('Creating sqlite engine')
+            engine = sqlalchemy.create_engine('{schema}://{hostname}/{db}'
+            .format(schema = self.db_type, hostname = '', db = self.db_file), echo=False)
+        elif self.db_type == 'mysql':
+            print('Connecting to MySQL server')
+            engine = sqlalchemy.create_engine(
+                '{schema}+pymysql://{user}:{password}@{hostname}:{port}/{db}'
+                    .format(schema = self.db_type, 
+                        hostname = self.credentials['host'],
+                        user = self.credentials['user'],
+                        password = self.credentials['passwd'],
+                        port = self.credentials['port'],
+                        db = self.credentials['db']), 
+                echo=False)
+        else:
+            # TODO: create engine for other database schemas
+            print('Unable to create engine for db_type: {}'.format(self.db_type))
+            raise
+        print('Database engine created')
+        return engine
+
+    def connect_to_db(self):
+        engine = self.create_engine()
+        print('Creating tables')
+        models.Base.metadata.create_all(bind=engine)
+        print('Connecting to database')
+        connection = engine.connect()
+        print('Connection established')
+        self.connection = connection
+        connection.begin()
+        return connection
+
+     
     def set_save_file_settings(self, save_file=False, save_dir=''):
         pass
     
-    def load_credentials(self, file_name=file_name):
+    def load_credentials(self, file_name):
         """Load the credentials from the json file"""
         with open(file_name,'r') as file:
                 credentials = json.load(file)
         return credentials
 
-    def connect_to_database(self, credentials=credentials):
+    def connect_to_database(self, credentials):
         """With the given credentials, establishes a connection with the database"""
         c = credentials
         return pymysql.connect(host=c['host'],user=c['user'],passwd=c['passwd'],port=c['port'], db=c['db'])
