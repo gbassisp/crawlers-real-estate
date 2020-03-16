@@ -149,9 +149,10 @@ class DataManager():
             self.uncrawled_urls.update(urls)
         return 
 
-    def save_new_response(self, response_url, response_status):
+    def save_new_response(self, response):
         """Update the request table with current response"""
         now = dt.datetime.now()
+        response_url, response_status = response.url, response.status
         self.crawled_urls.add(response_url)
         print(f'So far, {len(self.crawled_urls)} URLs have been crawled.')
         self.uncrawled_urls.discard(response_url)
@@ -179,53 +180,3 @@ class DataManager():
     def save_new_file(self, responseObj):
         pass
     
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
