@@ -16,7 +16,7 @@ class ZapimoveisSpider(scrapy.Spider):
     def __init__(self):
         # Create data manager object
         self.dm = data_manager.DataManager()
-        self.start_urls = ['https://www.zapimoveis.com.br/lancamento/venda-apartamento-2-quartos-liberdade-centro-sao-paulo-sp-37m2-id-2476413410/'] #[self.dm.add_https_scheme(domain) for domain in self.allowed_domains]
+        self.start_urls = [self.dm.add_https_scheme(domain) for domain in self.allowed_domains]
         self.dm.set_save_file_settings(self.save_file, self.save_dir)
         self.dm.set_domains(self.allowed_domains, self.domain_country)
         # get urls to crawl
