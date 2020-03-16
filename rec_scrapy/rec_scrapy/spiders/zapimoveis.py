@@ -33,8 +33,6 @@ class ZapimoveisSpider(scrapy.Spider):
 
     def parse(self, response):
         response_id, response_new = self.dm.save_new_response(response) #update the response table with the link and HTTP code
-        with open('daosijda.html', 'w') as f:
-            f.writelines(response.body.decode('utf-8'))
         try: #try parsing the page for new urls
             parser_obj = url_parser.URLParser(response.url) #create a parser object for this response
             parser_obj.feed(response.body.decode('utf-8')) #feed the HTML to the parser
